@@ -16,7 +16,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick-codegen" % "3.1.0",
   "com.jason-goodwin" %% "authentikat-jwt" % "0.4.1",
   "com.linecorp.bot" % "line-bot-api-client" % "1.6.0",
-  "com.linecorp.bot" % "line-bot-model" % "1.6.0"
+  "com.linecorp.bot" % "line-bot-model" % "1.6.0",
+    "com.squareup.okhttp3" % "okhttp" % "3.6.0"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
