@@ -26,7 +26,7 @@ class LineBotController @Inject() (ws: WSClient)  extends Controller{
     val lChannelAccessToken = conf.getString("line.channel_access_token")
 
     def callback = Action.async(parse.json) { request =>
-
+        Logger.info(s"Log Request all => ${request.body.toString()}")
         handleInvalidJsonFuture {
             request.body.validate[LinePayload] map {
                 pl =>
