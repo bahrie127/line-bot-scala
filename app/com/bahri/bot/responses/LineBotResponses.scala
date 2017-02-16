@@ -36,6 +36,13 @@ case class LinePayload(events: Seq[Event])
 case class SuccessBot(status: Int =200)
 case class EmptyDataResponse(status: Int, message: String, data: Map[String, String] = Map.empty[String, String])
 
+//text
+case class PushText(`type`: String, text: String)
+//image
+case class PushImage(`type`: String, originalContentUrl: String, previewImageUrl: String)
+case class PushPayload(to: String, messages: Seq[PushText])
+case class PushPayloadImg(to: String, messages: Seq[PushImage])
+
 object LineBotResponsesFormatters{
    implicit val emptyDataResponseFormatter = Json.format[EmptyDataResponse]
    implicit val messageFormatter =Json.format[Message]
@@ -43,6 +50,10 @@ object LineBotResponsesFormatters{
    implicit val eventFormatter = Json.format[Event]
    implicit val linePayloadFormatter = Json.format[LinePayload]
    implicit val successFormatter = Json.format[SuccessBot]
+   implicit val pushTextFormatter = Json.format[PushText]
+   implicit val pushImageFormatter = Json.format[PushImage]
+   implicit val pushPayloadFormatter = Json.format[PushPayload]
+   implicit val pushPayloadImgFormatter = Json.format[PushPayloadImg]
 }
 
 
