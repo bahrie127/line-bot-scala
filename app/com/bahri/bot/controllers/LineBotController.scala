@@ -29,29 +29,12 @@ class LineBotController @Inject() (ws: WSClient, lineBotService: LineBotService)
     def callback = Action.async(parse.json) { request =>
         Logger.info(s"Log Request all => ${request.body.toString()}")
         handleInvalidJsonFuture {
-            request.body.validate[LinePayload] map {
-                pl =>
-                    lineBotService.replyChat(pl.events).map{
+            request.body.validateOpt[LinePayload] map {
+                case pl =>
+                    lineBotService.replyChat(pl.get.events).map{
                         case true => Ok(Json.toJson(SuccessBot(200)))
                         case false => UnprocessableEntity(Json.toJson(SuccessBot(422)))
                 }
-
-//                    getAuthLine map {auth =>
-//                        Logger.info(s"request => ${request.body.toString()}")
-//                                val aXLineSignature = request.headers.get("X-Line-Signature").getOrElse("")
-//                        Logger.info(s"signature => ${aXLineSignature}")
-//                                val valid = new LineSignatureValidator(lChannelSecret.getBytes()).validateSignature(request.body.toString().getBytes, aXLineSignature)
-//                        Logger.info(s"valid => ${valid}")
-//                        val textMessage = new TextMessage(s"scala ${pl.events(0).message.text}")
-//                        val replyMessage = new ReplyMessage(pl.events(0).replyToken, textMessage)
-//                        LineMessagingServiceBuilder
-//                            .create(lChannelAccessToken)
-//                            .build()
-//                            .replyMessage(replyMessage)
-//                            .execute();
-//                          Ok(Json.toJson(SuccessBot(auth)))
-//                    }
-
             }
         }
     }
