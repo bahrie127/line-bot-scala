@@ -41,6 +41,7 @@ case class PushText(`type`: String, text: String)
 //image
 case class PushImage(`type`: String, originalContentUrl: String, previewImageUrl: String)
 case class PushPayload(to: String, messages: Seq[PushText])
+case class ReplyPayload(replyToken: String, messages: Seq[PushText])
 case class PushPayloadImg(to: String, messages: Seq[PushImage])
 
 object LineBotResponsesFormatters{
@@ -54,6 +55,7 @@ object LineBotResponsesFormatters{
    implicit val pushImageFormatter = Json.format[PushImage]
    implicit val pushPayloadFormatter = Json.format[PushPayload]
    implicit val pushPayloadImgFormatter = Json.format[PushPayloadImg]
+   implicit val replyPayloadFormatter = Json.format[ReplyPayload]
 }
 
 
