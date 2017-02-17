@@ -8,6 +8,7 @@ import play.api.mvc._
 import play.api.libs.json.{JsResult, Json}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import com.bahri.bot.responses.LineBotResponsesFormatters._
+import com.bahri.bot.services.LineBotService
 import com.linecorp.bot.client.{LineMessagingServiceBuilder, LineSignatureValidator}
 import com.linecorp.bot.model.{PushMessage, ReplyMessage}
 import com.linecorp.bot.model.message.TextMessage
@@ -19,7 +20,7 @@ import scala.concurrent.Future
 /**
   * Created by saifulbahri on 2/12/17.
   */
-class LineBotController @Inject() (ws: WSClient)  extends Controller{
+class LineBotController @Inject() (ws: WSClient, lineBotService: LineBotService)  extends Controller{
 
     val conf = ConfigFactory.load()
     val lChannelSecret = conf.getString("line.channel_secret")
@@ -30,21 +31,26 @@ class LineBotController @Inject() (ws: WSClient)  extends Controller{
         handleInvalidJsonFuture {
             request.body.validate[LinePayload] map {
                 pl =>
-                    getAuthLine map {auth =>
-                        Logger.info(s"request => ${request.body.toString()}")
-                                val aXLineSignature = request.headers.get("X-Line-Signature").getOrElse("")
-                        Logger.info(s"signature => ${aXLineSignature}")
-                                val valid = new LineSignatureValidator(lChannelSecret.getBytes()).validateSignature(request.body.toString().getBytes, aXLineSignature)
-                        Logger.info(s"valid => ${valid}")
-                        val textMessage = new TextMessage(s"scala ${pl.events(0).message.text}")
-                        val replyMessage = new ReplyMessage(pl.events(0).replyToken, textMessage)
-                        LineMessagingServiceBuilder
-                            .create(lChannelAccessToken)
-                            .build()
-                            .replyMessage(replyMessage)
-                            .execute();
-                          Ok(Json.toJson(SuccessBot(auth)))
-                    }
+                    lineBotService.replyChat(pl.events).map{
+                        case true => Ok(Json.toJson(SuccessBot(200)))
+                        case false => UnprocessableEntity(Json.toJson(SuccessBot(422)))
+                }
+
+//                    getAuthLine map {auth =>
+//                        Logger.info(s"request => ${request.body.toString()}")
+//                                val aXLineSignature = request.headers.get("X-Line-Signature").getOrElse("")
+//                        Logger.info(s"signature => ${aXLineSignature}")
+//                                val valid = new LineSignatureValidator(lChannelSecret.getBytes()).validateSignature(request.body.toString().getBytes, aXLineSignature)
+//                        Logger.info(s"valid => ${valid}")
+//                        val textMessage = new TextMessage(s"scala ${pl.events(0).message.text}")
+//                        val replyMessage = new ReplyMessage(pl.events(0).replyToken, textMessage)
+//                        LineMessagingServiceBuilder
+//                            .create(lChannelAccessToken)
+//                            .build()
+//                            .replyMessage(replyMessage)
+//                            .execute();
+//                          Ok(Json.toJson(SuccessBot(auth)))
+//                    }
 
             }
         }

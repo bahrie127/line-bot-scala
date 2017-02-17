@@ -9,6 +9,6 @@ import scala.concurrent.Future
   */
 trait LineBotService {
 
-    def replyChat(chat: Event) : Future[Boolean]
+    def replyChat(chat: Seq[Event]) : Future[Boolean]
 
 }
