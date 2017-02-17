@@ -47,30 +47,35 @@ trait Tables {
   /** Entity class storing rows of table TableMemories
    *  @param id Database column id SqlType(BIGINT UNSIGNED), AutoInc, PrimaryKey
    *  @param userId Database column user_id SqlType(VARCHAR), Length(50,true), Default()
-   *  @param text Database column text SqlType(VARCHAR), Length(255,true), Default()
    *  @param typeEvent Database column type_event SqlType(VARCHAR), Length(20,true), Default()
    *  @param typeSource Database column type_source SqlType(VARCHAR), Length(20,true), Default()
    *  @param typeMessage Database column type_message SqlType(VARCHAR), Length(20,true), Default()
    *  @param replyToken Database column reply_token SqlType(VARCHAR), Length(50,true), Default()
-   *  @param chatTime Database column chat_time SqlType(TIMESTAMP) */
-  case class TableMemoriesRow(id: Long, userId: String = "", text: String = "", typeEvent: String = "", typeSource: String = "", typeMessage: String = "", replyToken: String = "", chatTime: java.sql.Timestamp)
+   *  @param chatTime Database column chat_time SqlType(TIMESTAMP)
+   *  @param text Database column text SqlType(VARCHAR), Length(255,true), Default(None)
+   *  @param messageId Database column message_id SqlType(VARCHAR), Length(50,true), Default()
+   *  @param stickerId Database column sticker_id SqlType(VARCHAR), Length(50,true), Default(None)
+   *  @param packageId Database column package_id SqlType(VARCHAR), Length(50,true), Default(None)
+   *  @param title Database column title SqlType(VARCHAR), Length(50,true), Default(Some())
+   *  @param address Database column address SqlType(TEXT), Default(None)
+   *  @param latitude Database column latitude SqlType(DECIMAL), Default(None)
+   *  @param longitude Database column longitude SqlType(DECIMAL), Default(None) */
+  case class TableMemoriesRow(id: Long, userId: String = "", typeEvent: String = "", typeSource: String = "", typeMessage: String = "", replyToken: String = "", chatTime: java.sql.Timestamp, text: Option[String] = None, messageId: String = "", stickerId: Option[String] = None, packageId: Option[String] = None, title: Option[String] = Some(""), address: Option[String] = None, latitude: Option[scala.math.BigDecimal] = None, longitude: Option[scala.math.BigDecimal] = None)
   /** GetResult implicit for fetching TableMemoriesRow objects using plain SQL queries */
-  implicit def GetResultTableMemoriesRow(implicit e0: GR[Long], e1: GR[String], e2: GR[java.sql.Timestamp]): GR[TableMemoriesRow] = GR{
+  implicit def GetResultTableMemoriesRow(implicit e0: GR[Long], e1: GR[String], e2: GR[java.sql.Timestamp], e3: GR[Option[String]], e4: GR[Option[scala.math.BigDecimal]]): GR[TableMemoriesRow] = GR{
     prs => import prs._
-    TableMemoriesRow.tupled((<<[Long], <<[String], <<[String], <<[String], <<[String], <<[String], <<[String], <<[java.sql.Timestamp]))
+    TableMemoriesRow.tupled((<<[Long], <<[String], <<[String], <<[String], <<[String], <<[String], <<[java.sql.Timestamp], <<?[String], <<[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[scala.math.BigDecimal], <<?[scala.math.BigDecimal]))
   }
   /** Table description of table table_memories. Objects of this class serve as prototypes for rows in queries. */
   class TableMemories(_tableTag: Tag) extends Table[TableMemoriesRow](_tableTag, "table_memories") {
-    def * = (id, userId, text, typeEvent, typeSource, typeMessage, replyToken, chatTime) <> (TableMemoriesRow.tupled, TableMemoriesRow.unapply)
+    def * = (id, userId, typeEvent, typeSource, typeMessage, replyToken, chatTime, text, messageId, stickerId, packageId, title, address, latitude, longitude) <> (TableMemoriesRow.tupled, TableMemoriesRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (Rep.Some(id), Rep.Some(userId), Rep.Some(text), Rep.Some(typeEvent), Rep.Some(typeSource), Rep.Some(typeMessage), Rep.Some(replyToken), Rep.Some(chatTime)).shaped.<>({r=>import r._; _1.map(_=> TableMemoriesRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (Rep.Some(id), Rep.Some(userId), Rep.Some(typeEvent), Rep.Some(typeSource), Rep.Some(typeMessage), Rep.Some(replyToken), Rep.Some(chatTime), text, Rep.Some(messageId), stickerId, packageId, title, address, latitude, longitude).shaped.<>({r=>import r._; _1.map(_=> TableMemoriesRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8, _9.get, _10, _11, _12, _13, _14, _15)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column id SqlType(BIGINT UNSIGNED), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
     /** Database column user_id SqlType(VARCHAR), Length(50,true), Default() */
     val userId: Rep[String] = column[String]("user_id", O.Length(50,varying=true), O.Default(""))
-    /** Database column text SqlType(VARCHAR), Length(255,true), Default() */
-    val text: Rep[String] = column[String]("text", O.Length(255,varying=true), O.Default(""))
     /** Database column type_event SqlType(VARCHAR), Length(20,true), Default() */
     val typeEvent: Rep[String] = column[String]("type_event", O.Length(20,varying=true), O.Default(""))
     /** Database column type_source SqlType(VARCHAR), Length(20,true), Default() */
@@ -81,6 +86,22 @@ trait Tables {
     val replyToken: Rep[String] = column[String]("reply_token", O.Length(50,varying=true), O.Default(""))
     /** Database column chat_time SqlType(TIMESTAMP) */
     val chatTime: Rep[java.sql.Timestamp] = column[java.sql.Timestamp]("chat_time")
+    /** Database column text SqlType(VARCHAR), Length(255,true), Default(None) */
+    val text: Rep[Option[String]] = column[Option[String]]("text", O.Length(255,varying=true), O.Default(None))
+    /** Database column message_id SqlType(VARCHAR), Length(50,true), Default() */
+    val messageId: Rep[String] = column[String]("message_id", O.Length(50,varying=true), O.Default(""))
+    /** Database column sticker_id SqlType(VARCHAR), Length(50,true), Default(None) */
+    val stickerId: Rep[Option[String]] = column[Option[String]]("sticker_id", O.Length(50,varying=true), O.Default(None))
+    /** Database column package_id SqlType(VARCHAR), Length(50,true), Default(None) */
+    val packageId: Rep[Option[String]] = column[Option[String]]("package_id", O.Length(50,varying=true), O.Default(None))
+    /** Database column title SqlType(VARCHAR), Length(50,true), Default(Some()) */
+    val title: Rep[Option[String]] = column[Option[String]]("title", O.Length(50,varying=true), O.Default(Some("")))
+    /** Database column address SqlType(TEXT), Default(None) */
+    val address: Rep[Option[String]] = column[Option[String]]("address", O.Default(None))
+    /** Database column latitude SqlType(DECIMAL), Default(None) */
+    val latitude: Rep[Option[scala.math.BigDecimal]] = column[Option[scala.math.BigDecimal]]("latitude", O.Default(None))
+    /** Database column longitude SqlType(DECIMAL), Default(None) */
+    val longitude: Rep[Option[scala.math.BigDecimal]] = column[Option[scala.math.BigDecimal]]("longitude", O.Default(None))
   }
   /** Collection-like TableQuery object for table TableMemories */
   lazy val TableMemories = new TableQuery(tag => new TableMemories(tag))
