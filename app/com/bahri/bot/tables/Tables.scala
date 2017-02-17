@@ -46,7 +46,7 @@ trait Tables {
 
   /** Entity class storing rows of table TableMemories
    *  @param id Database column id SqlType(BIGINT UNSIGNED), AutoInc, PrimaryKey
-   *  @param userId Database column user_id SqlType(VARCHAR), Length(50,true), Default()
+   *  @param userId Database column user_id SqlType(VARCHAR), Length(50,true), Default(None)
    *  @param typeEvent Database column type_event SqlType(VARCHAR), Length(20,true), Default()
    *  @param typeSource Database column type_source SqlType(VARCHAR), Length(20,true), Default()
    *  @param typeMessage Database column type_message SqlType(VARCHAR), Length(20,true), Default()
@@ -59,23 +59,25 @@ trait Tables {
    *  @param title Database column title SqlType(VARCHAR), Length(50,true), Default(Some())
    *  @param address Database column address SqlType(TEXT), Default(None)
    *  @param latitude Database column latitude SqlType(DECIMAL), Default(None)
-   *  @param longitude Database column longitude SqlType(DECIMAL), Default(None) */
-  case class TableMemoriesRow(id: Long, userId: String = "", typeEvent: String = "", typeSource: String = "", typeMessage: String = "", replyToken: String = "", chatTime: java.sql.Timestamp, text: Option[String] = None, messageId: String = "", stickerId: Option[String] = None, packageId: Option[String] = None, title: Option[String] = Some(""), address: Option[String] = None, latitude: Option[scala.math.BigDecimal] = None, longitude: Option[scala.math.BigDecimal] = None)
+   *  @param longitude Database column longitude SqlType(DECIMAL), Default(None)
+   *  @param roomId Database column room_id SqlType(VARCHAR), Length(50,true), Default(None)
+   *  @param groupId Database column group_id SqlType(VARCHAR), Length(50,true), Default(None) */
+  case class TableMemoriesRow(id: Long, userId: Option[String] = None, typeEvent: String = "", typeSource: String = "", typeMessage: String = "", replyToken: String = "", chatTime: java.sql.Timestamp, text: Option[String] = None, messageId: String = "", stickerId: Option[String] = None, packageId: Option[String] = None, title: Option[String] = Some(""), address: Option[String] = None, latitude: Option[scala.math.BigDecimal] = None, longitude: Option[scala.math.BigDecimal] = None, roomId: Option[String] = None, groupId: Option[String] = None)
   /** GetResult implicit for fetching TableMemoriesRow objects using plain SQL queries */
-  implicit def GetResultTableMemoriesRow(implicit e0: GR[Long], e1: GR[String], e2: GR[java.sql.Timestamp], e3: GR[Option[String]], e4: GR[Option[scala.math.BigDecimal]]): GR[TableMemoriesRow] = GR{
+  implicit def GetResultTableMemoriesRow(implicit e0: GR[Long], e1: GR[Option[String]], e2: GR[String], e3: GR[java.sql.Timestamp], e4: GR[Option[scala.math.BigDecimal]]): GR[TableMemoriesRow] = GR{
     prs => import prs._
-    TableMemoriesRow.tupled((<<[Long], <<[String], <<[String], <<[String], <<[String], <<[String], <<[java.sql.Timestamp], <<?[String], <<[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[scala.math.BigDecimal], <<?[scala.math.BigDecimal]))
+    TableMemoriesRow.tupled((<<[Long], <<?[String], <<[String], <<[String], <<[String], <<[String], <<[java.sql.Timestamp], <<?[String], <<[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[scala.math.BigDecimal], <<?[scala.math.BigDecimal], <<?[String], <<?[String]))
   }
   /** Table description of table table_memories. Objects of this class serve as prototypes for rows in queries. */
   class TableMemories(_tableTag: Tag) extends Table[TableMemoriesRow](_tableTag, "table_memories") {
-    def * = (id, userId, typeEvent, typeSource, typeMessage, replyToken, chatTime, text, messageId, stickerId, packageId, title, address, latitude, longitude) <> (TableMemoriesRow.tupled, TableMemoriesRow.unapply)
+    def * = (id, userId, typeEvent, typeSource, typeMessage, replyToken, chatTime, text, messageId, stickerId, packageId, title, address, latitude, longitude, roomId, groupId) <> (TableMemoriesRow.tupled, TableMemoriesRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (Rep.Some(id), Rep.Some(userId), Rep.Some(typeEvent), Rep.Some(typeSource), Rep.Some(typeMessage), Rep.Some(replyToken), Rep.Some(chatTime), text, Rep.Some(messageId), stickerId, packageId, title, address, latitude, longitude).shaped.<>({r=>import r._; _1.map(_=> TableMemoriesRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8, _9.get, _10, _11, _12, _13, _14, _15)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (Rep.Some(id), userId, Rep.Some(typeEvent), Rep.Some(typeSource), Rep.Some(typeMessage), Rep.Some(replyToken), Rep.Some(chatTime), text, Rep.Some(messageId), stickerId, packageId, title, address, latitude, longitude, roomId, groupId).shaped.<>({r=>import r._; _1.map(_=> TableMemoriesRow.tupled((_1.get, _2, _3.get, _4.get, _5.get, _6.get, _7.get, _8, _9.get, _10, _11, _12, _13, _14, _15, _16, _17)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column id SqlType(BIGINT UNSIGNED), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
-    /** Database column user_id SqlType(VARCHAR), Length(50,true), Default() */
-    val userId: Rep[String] = column[String]("user_id", O.Length(50,varying=true), O.Default(""))
+    /** Database column user_id SqlType(VARCHAR), Length(50,true), Default(None) */
+    val userId: Rep[Option[String]] = column[Option[String]]("user_id", O.Length(50,varying=true), O.Default(None))
     /** Database column type_event SqlType(VARCHAR), Length(20,true), Default() */
     val typeEvent: Rep[String] = column[String]("type_event", O.Length(20,varying=true), O.Default(""))
     /** Database column type_source SqlType(VARCHAR), Length(20,true), Default() */
@@ -102,6 +104,10 @@ trait Tables {
     val latitude: Rep[Option[scala.math.BigDecimal]] = column[Option[scala.math.BigDecimal]]("latitude", O.Default(None))
     /** Database column longitude SqlType(DECIMAL), Default(None) */
     val longitude: Rep[Option[scala.math.BigDecimal]] = column[Option[scala.math.BigDecimal]]("longitude", O.Default(None))
+    /** Database column room_id SqlType(VARCHAR), Length(50,true), Default(None) */
+    val roomId: Rep[Option[String]] = column[Option[String]]("room_id", O.Length(50,varying=true), O.Default(None))
+    /** Database column group_id SqlType(VARCHAR), Length(50,true), Default(None) */
+    val groupId: Rep[Option[String]] = column[Option[String]]("group_id", O.Length(50,varying=true), O.Default(None))
   }
   /** Collection-like TableQuery object for table TableMemories */
   lazy val TableMemories = new TableQuery(tag => new TableMemories(tag))
