@@ -19,6 +19,7 @@ object AuthAction extends ActionBuilder[Request]{
         TokenExtractor.extractToken(request) match {
             case true => LineUtils.handleResponseException(block(request), Seq())
             case false =>
+                Logger.info("token result invalid")
                 Future.successful {
                     Results.Unauthorized(Json.toJson(
                         EmptyDataResponse(status = 401, message = "Invalid token")))
@@ -35,7 +36,9 @@ object TokenExtractor {
 
     def extractToken[A](request: Request[A]): Boolean = {
         request.headers.get("X-Line-Signature") match {
-            case Some(token) => new LineSignatureValidator(lChannelSecret.getBytes()).validateSignature(request.body.toString().getBytes, token)
+            case Some(token) => val isValid = new LineSignatureValidator(lChannelSecret.getBytes()).validateSignature(request.body.toString().getBytes, token)
+                Logger.info(s"result token => $isValid, token => $token")
+                isValid
             case None => false
         }
     }
