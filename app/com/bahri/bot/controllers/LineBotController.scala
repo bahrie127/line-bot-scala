@@ -2,6 +2,7 @@ package com.bahri.bot.controllers
 
 import javax.inject.Inject
 
+import com.bahri.bot.infra.{AuthAction, LineUtils}
 import com.bahri.bot.responses._
 import com.typesafe.config.ConfigFactory
 import play.api.mvc._
@@ -26,9 +27,9 @@ class LineBotController @Inject() (ws: WSClient, lineBotService: LineBotService)
     val lChannelSecret = conf.getString("line.channel_secret")
     val lChannelAccessToken = conf.getString("line.channel_access_token")
 
-    def callback = Action.async(parse.json) { request =>
+    def callback = AuthAction.async(parse.json) { request =>
         Logger.info(s"Log Request all => ${request.body.toString()}")
-        handleInvalidJsonFuture {
+        LineUtils.handleInvalidJsonFuture {
             request.body.validateOpt[LinePayload] map {
                 case pl =>
                     lineBotService.replyChat(pl.get.events).map{
@@ -81,11 +82,5 @@ class LineBotController @Inject() (ws: WSClient, lineBotService: LineBotService)
     }
 
     def getAuthLine: Future[Int]=Future.successful(200)
-
-    def handleInvalidJsonFuture(json: JsResult[Future[Result]]): Future[Result] = {
-        json.recoverTotal {
-            case _ => Future.successful(Results.BadRequest(Json.toJson(EmptyDataResponse(status = 400, message = "Invalid request body!"))))
-        }
-    }
 
 }
