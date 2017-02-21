@@ -15,8 +15,10 @@ import scala.concurrent.Future
   * Created by saifulbahri on 2/18/17.
   */
 object AuthAction extends ActionBuilder[Request]{
+    val conf = ConfigFactory.load()
+    val validToken = conf.getBoolean("enableValidToken")
     override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]): Future[Result] = {
-        TokenExtractor.extractToken(request) match {
+        (!validToken || TokenExtractor.extractToken(request)) match {
             case true => LineUtils.handleResponseException(block(request), Seq())
             case false =>
                 Future.successful {

@@ -1,23 +1,23 @@
 package com.bahri.bot.services
 import javax.inject.Inject
 
-import com.bahri.bot.infra.DBConnection
+import com.bahri.bot.infra.{DBConnection, LineUtils}
 import com.bahri.bot.responses.{Event, PushText, ReplyPayload}
 import com.typesafe.config.ConfigFactory
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import slick.driver.MySQLDriver.api._
-import tables.Tables.TableMemories
+import tables.Tables.{TableAnswers, TableMemories}
 import com.bahri.bot.responses.LineBotResponsesFormatters._
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
   * Created by saifulbahri on 2/15/17.
   */
-class LineBotServiceImpl @Inject() (ws: WSClient) extends LineBotService{
+class LineBotServiceImpl @Inject()(ws: WSClient) extends LineBotService{
 
     val conf = ConfigFactory.load()
     val lChannelSecret = conf.getString("line.channel_secret")
@@ -26,20 +26,48 @@ class LineBotServiceImpl @Inject() (ws: WSClient) extends LineBotService{
 
     override def replyChat(chats: Seq[Event]): Future[Boolean] = {
         val chat = chats(0)
-        DBConnection.db.run(LineBotServiceImpl.memoryTable.map(mt => (mt.userId, mt.replyToken, mt.typeEvent, mt.typeSource, mt.typeMessage, mt.text,
-        mt.stickerId, mt.packageId, mt.messageId, mt.title, mt.address, mt.latitude, mt.longitude)) +=
-            (chat.source.userId, chat.replyToken, chat.`type`, chat.source.`type`, chat.message.`type`, chat.message.text,
-            chat.message.stickerId, chat.message.packageId, chat.message.id, chat.message.title, chat.message.address, chat.message.latitude, chat.message.longitude))
-        val msg = PushText("text", s"Hello ${chat.message.text.getOrElse(chat.message.id)}")
-        val replyPayload = ReplyPayload(chat.replyToken,Seq[PushText](msg))
-        ws.url(replyUrl).withHeaders("Content-Type" -> "application/json","Authorization" -> s"Bearer $lChannelAccessToken").post(Json.toJson(replyPayload)).map { response =>
-            Logger.info(s"response status: ${response.status}, body: ${response.body}")
+        storingChat(chat)
+
+        val action = for{
+            countRow <-LineBotServiceImpl.answerTable.filter(_.userId===chat.source.userId.getOrElse("")).length.result
+        }yield countRow
+
+        DBConnection.db.run(action).map{
+            case number =>
+                number match {
+                    case 7 => DBConnection.db.run(LineBotServiceImpl.answerTable.filter(_.userId===chat.source.userId.getOrElse("")).delete)
+                    case _ => saveFormulir(chat, number)
+                }
+                lineReply(chat.replyToken, LineUtils.botQuestions(number+1))
         }
         Future.apply(true)
+    }
+
+    def storingChat(chat: Event)= {
+        DBConnection.db.run(LineBotServiceImpl.memoryTable.map(mt => (mt.userId, mt.replyToken, mt.typeEvent, mt.typeSource, mt.typeMessage, mt.text,
+            mt.stickerId, mt.packageId, mt.messageId, mt.title, mt.address, mt.latitude, mt.longitude, mt.roomId, mt.groupId)) +=
+            (chat.source.userId, chat.replyToken, chat.`type`, chat.source.`type`, chat.message.`type`, chat.message.text,
+                chat.message.stickerId, chat.message.packageId, chat.message.id, chat.message.title, chat.message.address, chat.message.latitude, chat.message.longitude,
+                chat.source.roomId, chat.source.groupId))
+    }
+
+    def lineReply(destination: String, msg: String) = {
+        val message = PushText("text", s"$msg")
+        val replyPayload = ReplyPayload(destination, Seq[PushText](message))
+        ws.url(replyUrl).withHeaders("Content-Type" -> "application/json","Authorization" -> s"Bearer $lChannelAccessToken").post(Json.toJson(replyPayload)).map { response =>
+            Logger.info(s"response token: $destination, status: ${response.status}, body: ${response.body}")
+        }
+    }
+
+    def saveFormulir(chat: Event, no: Int) = {
+        val action = LineBotServiceImpl.answerTable.map(at => (at.userId, at.answerNo, at.answerText)) returning LineBotServiceImpl.answerTable.map(_.id) +=
+            (chat.source.userId.getOrElse(""), no, chat.message.text.getOrElse(""))
+        DBConnection.db.run(action)
     }
 }
 
 object LineBotServiceImpl{
     val memoryTable= TableQuery[TableMemories]
+    val answerTable = TableQuery[TableAnswers]
 }
 

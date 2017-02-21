@@ -31,7 +31,7 @@ import scala.concurrent.Future
 
 case class Message(`type`:String, id:String, text: Option[String], stickerId: Option[String], packageId: Option[String],
                    title: Option[String], address: Option[String], latitude: Option[BigDecimal], longitude: Option[BigDecimal])
-case class Source(userId: String, `type`: String)
+case class Source(userId: Option[String], roomId: Option[String], groupId: Option[String], `type`: String)
 case class Event(`type`: String, replyToken: String, source: Source, timestamp: Long, message: Message)
 case class LinePayload(events: Seq[Event])
 case class SuccessBot(status: Int =200)

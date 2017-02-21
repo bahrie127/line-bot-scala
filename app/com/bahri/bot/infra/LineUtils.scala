@@ -30,4 +30,17 @@ object LineUtils {
         })
     }
 
+    def botQuestions(no: Int): String = {
+        no match {
+            case 1 => "Masukkan nomor product yang ingin dibeli ?"
+            case 2 => "Berapa jumlah barang yang di beli?"
+            case 3 => "Pengiriman atas nama ?"
+            case 4 => "Masukan email anda?"
+            case 5 => "Masukan nomor telepon anda?"
+            case 6 => "Masukan alamat pengiriman ?"
+            case 7 => "Apakah data diatas sudah benar?"
+            case _ => "tidak ada pertanyaan"
+        }
+    }
+
 }
