@@ -66,7 +66,7 @@ class LineBotServiceImpl @Inject()(ws: WSClient) extends LineBotService{
     def lineReplyTempleteCarousel(destination: String) = {
             var columnSeq = Seq[Column]()
         DBConnection.db.run(LineBotServiceImpl.productTable.result).map{
-            data =>  data.map{
+            data =>  data.filter(_.id <= 5).map{
                 product => columnSeq = columnSeq :+ Column(product.imgUrl1.getOrElse(""), product.codeProduct.getOrElse(""), product.nameProduct.getOrElse(""), Seq[Action](Action("postback","Beli",product.nameProduct.get)))
             }
                 val templete = TempleteProduct("template", "Kaos Bapak Soleh", Carousel("carousel", columnSeq))
