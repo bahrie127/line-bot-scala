@@ -2,13 +2,13 @@ package com.bahri.bot.services
 import javax.inject.Inject
 
 import com.bahri.bot.infra.{DBConnection, LineUtils}
-import com.bahri.bot.responses.{Event, PushText, ReplyPayload}
+import com.bahri.bot.responses._
 import com.typesafe.config.ConfigFactory
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import slick.driver.MySQLDriver.api._
-import tables.Tables.{TableAnswers, TableMemories}
+import tables.Tables.{TableAnswers, TableMemories, TableProducts}
 import com.bahri.bot.responses.LineBotResponsesFormatters._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,7 +38,11 @@ class LineBotServiceImpl @Inject()(ws: WSClient) extends LineBotService{
                     case 7 => DBConnection.db.run(LineBotServiceImpl.answerTable.filter(_.userId===chat.source.userId.getOrElse("")).delete)
                     case _ => saveFormulir(chat, number)
                 }
-                lineReply(chat.replyToken, LineUtils.botQuestions(number+1))
+            number match {
+                case 0 => lineReplyTempleteCarousel(chat.replyToken)
+                case _ => lineReply(chat.replyToken, LineUtils.botQuestions(number+1))
+            }
+
         }
         Future.apply(true)
     }
@@ -59,6 +63,25 @@ class LineBotServiceImpl @Inject()(ws: WSClient) extends LineBotService{
         }
     }
 
+    def lineReplyTempleteCarousel(destination: String) = {
+            var columnSeq = Seq[Column]()
+        DBConnection.db.run(LineBotServiceImpl.productTable.result).map{
+            data =>  data.map{
+                product => columnSeq = columnSeq :+ Column(product.imgUrl1.getOrElse(""), product.codeProduct.getOrElse(""), product.nameProduct.getOrElse(""), Seq[Action]())
+            }
+                val templete = TempleteProduct("template", "Kaos Bapak Soleh", Carousel("carousel", columnSeq))
+                val replyPayload = ReplyPayloadTemplate(destination, Seq[TempleteProduct](templete))
+                Logger.info(s"reply payload template : ${replyPayload.toString}")
+                ws.url(replyUrl).withHeaders("Content-Type" -> "application/json","Authorization" -> s"Bearer $lChannelAccessToken").post(Json.toJson(replyPayload)).map { response =>
+                    Logger.info(s"response token: $destination, status: ${response.status}, body: ${response.body}")
+                }
+        }
+
+//        val message = PushText("text", s"")
+//        val replyPayload = ReplyPayload(destination, Seq[PushText](message))
+
+    }
+
     def saveFormulir(chat: Event, no: Int) = {
         val action = LineBotServiceImpl.answerTable.map(at => (at.userId, at.answerNo, at.answerText)) returning LineBotServiceImpl.answerTable.map(_.id) +=
             (chat.source.userId.getOrElse(""), no, chat.message.text.getOrElse(""))
@@ -69,5 +92,6 @@ class LineBotServiceImpl @Inject()(ws: WSClient) extends LineBotService{
 object LineBotServiceImpl{
     val memoryTable= TableQuery[TableMemories]
     val answerTable = TableQuery[TableAnswers]
+    val productTable = TableQuery[TableProducts]
 }
 

@@ -7,9 +7,9 @@
 
 POST /linebot/callback                                                                                                  com.bahri.bot.controllers.LineBotController.callback
 
-GET /linebot/push                                                                                                  com.bahri.bot.controllers.LineBotController.pushMessage
+#GET /linebot/push                                                                                                  com.bahri.bot.controllers.LineBotController.pushMessage
 
-GET /linebot/push_text                                                                                                  com.bahri.bot.controllers.LineBotController.pushJson
+#ET /linebot/push_text                                                                                                  com.bahri.bot.controllers.LineBotController.pushJson
 
 
 # Map static resources from the /public folder to the /assets URL path

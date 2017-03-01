@@ -45,6 +45,48 @@ case class PushPayload(to: String, messages: Seq[PushText])
 case class ReplyPayload(replyToken: String, messages: Seq[PushText])
 case class PushPayloadImg(to: String, messages: Seq[PushImage])
 
+/**
+  * {
+  "type": "template",
+  "altText": "this is a carousel template",
+  "template": {
+      "type": "carousel",
+      "columns": [
+          {
+            "thumbnailImageUrl": "https://example.com/bot/images/item1.jpg",
+            "title": "this is menu",
+            "text": "description",
+            "actions": [
+                {
+                    "type": "postback",
+                    "label": "Buy",
+                    "data": "action=buy&itemid=111"
+                },
+                {
+                    "type": "postback",
+                    "label": "Add to cart",
+                    "data": "action=add&itemid=111"
+                },
+                {
+                    "type": "uri",
+                    "label": "View detail",
+                    "uri": "http://example.com/page/111"
+                }
+            ]
+          }
+      ]
+  }
+}
+  */
+
+case class Action(`type`: String, label: String, data: String)
+case class Column(thumbnailImageUrl: String, title: String, text: String, actions: Seq[Action])
+case class Carousel(`type`: String, columns: Seq[Column])
+case class TempleteProduct(`type`: String, altText: String, template:Carousel)
+
+case class ReplyPayloadTemplate(replyToken: String, messages: Seq[TempleteProduct])
+
+
 object LineBotResponsesFormatters{
    implicit val emptyDataResponseFormatter = Json.format[EmptyDataResponse]
    implicit val messageFormatter =Json.format[Message]
@@ -57,6 +99,11 @@ object LineBotResponsesFormatters{
    implicit val pushPayloadFormatter = Json.format[PushPayload]
    implicit val pushPayloadImgFormatter = Json.format[PushPayloadImg]
    implicit val replyPayloadFormatter = Json.format[ReplyPayload]
+   implicit val actionFormatter =  Json.format[Action]
+   implicit val columnFormatter =  Json.format[Column]
+   implicit val CarouselFormatter =  Json.format[Carousel]
+   implicit val templeteFormatter =  Json.format[TempleteProduct]
+   implicit val replyTempleteFormatter =  Json.format[ReplyPayloadTemplate]
 }
 
 
